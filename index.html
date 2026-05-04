@@ -1,1 +1,1093 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro de Incidencias</title>
+  <style>
+    :root{--bg:#f5f7fa;--fg:#1f2937;--muted:#6b7280;--card:#ffffff;--border:#e5e7eb;--brand:#2563eb;--brand-hover:#1d4ed8;--danger:#ef4444;--danger-hover:#dc2626;--secondary:#f3f4f6;--secondary-hover:#e5e7eb}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,"Helvetica Neue",Arial;line-height:1.5}
+    header{padding:20px 16px;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;z-index:10;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+    header h1{margin:0;font-size:24px}
+    header small{color:var(--muted);font-size:14px}
+    .container{max-width:1200px;margin:24px auto;padding:0 16px;display:grid;grid-template-columns:1fr;gap:24px}
+    @media(min-width:980px){.container{grid-template-columns:420px 1fr}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.05)}
+    .card h2{margin:0 0 16px;font-size:18px;font-weight:800;border-bottom:1px solid var(--border);padding-bottom:10px}
+    label{display:block;margin:10px 0 6px;font-weight:800;font-size:14px}
+    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;transition:border-color .15s;font-size:16px}
+    input:focus,select:focus,textarea:focus{border-color:var(--brand);outline:0;box-shadow:0 0 0 2px rgba(37,99,235,.2)}
+    .row{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:600px){.row.two{grid-template-columns:1fr 1fr}.row.three{grid-template-columns:1fr 1fr 1fr}}
+    button,.btn-label{appearance:none;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;font-weight:900;font-size:15px;transition:.15s;white-space:nowrap;text-align:center;display:inline-flex;justify-content:center;align-items:center}
+    .btn{background:var(--brand);color:#fff}.btn:hover{background:var(--brand-hover)}
+    .btn.secondary,.btn-label{background:var(--secondary);color:var(--fg)}.btn.secondary:hover,.btn-label:hover{background:var(--secondary-hover)}
+    .btn.danger{background:var(--danger);color:#fff}.btn.danger:hover{background:var(--danger-hover)}
+    .btn.muted{background:var(--border);color:var(--fg)}.btn.muted:hover{opacity:.85}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+    .right{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+    table{width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;margin-top:10px}
+    thead{background:var(--secondary)}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px;vertical-align:top}
+    .pill{display:inline-block;padding:.2rem .6rem;border-radius:999px;font-size:12px;font-weight:900}
+    .inc-Retardo{background:#fef3c7;color:#92400e}
+    .inc-Falta{background:#fee2e2;color:#991b1b}
+    .inc-Omisión{background:#e0e7ff;color:#3730a3}
+    .inc-Incapacidad{background:#dcfce7;color:#166534}
+    .inc-Licencia\ Económica{background:#e5e7eb;color:#111827}
+    .muted{color:var(--muted)}
+    .mono{font-variant-numeric:tabular-nums;font-family:Consolas,Monaco,monospace}
+    .stat{padding:16px;border:1px solid var(--border);border-radius:8px;background:#fff}
+    .stat b{font-size:20px;font-weight:900;display:block;margin-top:4px}
+    details{border:1px dashed var(--border);padding:12px;border-radius:8px;margin-top:16px}
+    details>summary{cursor:pointer;font-weight:900}
+    .footer-note{font-size:12px;color:var(--muted);margin-top:8px}
+    .center{text-align:center}
+    .flex{display:flex;gap:10px;align-items:center}
+    .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .grid-full{grid-column:1/-1}
+    .btn-label input[type=file]{display:none}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#fff}
+    .hint{margin-top:-6px}
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Registro de Incidencias</h1>
+  <small>Falta • Retardo • Incapacidad • Omisión • Licencia Económica</small>
+</header>
+
+<div class="container">
+
+  <!-- PANEL IZQUIERDO -->
+  <section class="card">
+
+    <h2>Plantilla de personal</h2>
+    <div class="toolbar">
+      <button class="btn" type="button" id="btnToggleAlta">+ Agregar personal</button>
+      <button class="btn secondary" type="button" id="btnExportCSV">Exportar incidencias a Excel (CSV)</button>
+    </div>
+
+    <div id="altaBox" style="display:none;margin-top:10px">
+      <div class="row two">
+        <div>
+          <label>Nombre (mayúsculas)</label>
+          <input id="nuevoNombre" placeholder="EJ. GARCÍA LÓPEZ MARÍA" />
+        </div>
+        <div>
+          <label>Función</label>
+          <select id="nuevaFuncion">
+            <option>Docente</option>
+            <option>Trabajo social</option>
+            <option>Intendente</option>
+            <option>Contralor</option>
+            <option>Administrativo</option>
+            <option>Prefecto</option>
+            <option>Coordinador de talleres</option>
+            <option>Coordinador académico</option>
+            <option>Tallerista</option>
+            <option>Tecnólogo</option>
+            <option>Secretaria</option>
+          </select>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" type="button" id="btnAddPersonal">Guardar en plantilla</button>
+        <button class="btn muted" type="button" id="btnCancelarAlta">Cancelar</button>
+      </div>
+    </div>
+
+    <details>
+      <summary>Administrar plantilla (buscar / borrar)</summary>
+      <div class="row two" style="margin-top:10px">
+        <input id="buscarPersonal" placeholder="Buscar por nombre…" />
+        <button class="btn muted" type="button" id="btnLimpiarBusqueda">Limpiar</button>
+      </div>
+      <div id="listaPersonal" style="max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:10px"></div>
+    </details>
+
+    <details>
+      <summary>Importar / Exportar (JSON)</summary>
+      <div class="row two" style="margin-top:12px">
+        <button class="btn secondary" type="button" id="btnExportJSON">Exportar JSON</button>
+        <label class="btn-label center" style="cursor:pointer">
+          Importar JSON
+          <input type="file" id="fileImport" accept="application/json" />
+        </label>
+      </div>
+      <p class="footer-note">CSV es para Excel. JSON es respaldo completo.</p>
+    </details>
+
+    <hr style="margin:18px 0;border:none;border-top:1px solid var(--border)"/>
+
+    <h2>Logo de la escuela</h2>
+    <div class="row two" id="logoBox">
+      <div id="logoUploader">
+        <label>Cargar logo (JPG/PNG)</label>
+        <input type="file" id="logoInput" accept="image/*" />
+        <div class="footer-note">Se guarda e incrusta en el MEMO.</div>
+      </div>
+      <div>
+        <label>Vista previa</label>
+        <div style="border:1px solid var(--border);border-radius:10px;padding:10px;min-height:90px;display:flex;align-items:center;justify-content:center;background:#fff">
+          <img id="logoPreview" alt="Logo" style="max-height:90px;max-width:100%;display:none" />
+          <span id="logoEmpty" class="muted">Sin logo</span>
+        </div>
+        <div class="toolbar">
+          <button class="btn secondary" type="button" id="btnCambiarLogo" style="display:none">Cambiar logo</button>
+          <button class="btn muted" type="button" id="btnBorrarLogo">Borrar logo</button>
+        </div>
+      </div>
+    </div>
+
+    <hr style="margin:18px 0;border:none;border-top:1px solid var(--border)"/>
+
+    <h2>Captura rápida</h2>
+    <form id="formIncidencia">
+      <div class="row two">
+        <div>
+          <label>Personal</label>
+          <select id="personalSel" required></select>
+          <div class="footer-note hint" id="personalHint"></div>
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="fecha" required />
+        </div>
+      </div>
+
+      <div class="row two">
+        <div>
+          <label>Tipo de incidencia</label>
+          <select id="tipo" required>
+            <option>Incapacidad</option>
+            <option>Retardo</option>
+            <option>Falta</option>
+            <option>Omisión</option>
+            <option>Licencia Económica</option>
+          </select>
+          <div class="footer-note hint">Memo: solo Faltas y Retardos (por quincena).</div>
+        </div>
+        <div>
+          <label>Horas afectadas</label>
+          <select id="horas">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="JORNADA">JORNADA</option>
+          </select>
+          <div class="footer-note hint" id="horasHint"></div>
+        </div>
+      </div>
+
+      <label>Nota (opcional)</label>
+      <textarea id="nota" rows="2" placeholder="Descripción corta…"></textarea>
+
+      <div class="toolbar">
+        <button class="btn" type="submit">Guardar incidencia</button>
+        <button class="btn secondary" type="button" id="btnNueva">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- PANEL DERECHO -->
+  <section class="card">
+    <div class="row two">
+      <h2 style="margin:0;border:none;padding:0">Incidencias registradas</h2>
+      <div class="right">
+        <select id="filtroPersonal"></select>
+        <select id="filtroMes"></select>
+        <button class="btn muted" id="btnLimpiarFiltros" type="button">Reset</button>
+      </div>
+    </div>
+
+    <div style="overflow:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Personal</th>
+            <th>Función</th>
+            <th>Fecha</th>
+            <th>Semana</th>
+            <th>Tipo</th>
+            <th>Horas/Jornada</th>
+            <th>Nota</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+      </table>
+    </div>
+
+    <hr style="margin:18px 0;border:none;border-top:1px solid var(--border)"/>
+
+    <div class="row two">
+      <h2 style="margin:0;border:none;padding:0">Resumen (Horas/Jornadas)</h2>
+      <div class="right">
+        <select id="resPersonal"></select>
+        <button class="btn secondary" id="btnRefrescarRes" type="button">Actualizar</button>
+      </div>
+    </div>
+
+    <h3 style="font-size:16px;margin:16px 0 8px">Semanales</h3>
+    <div class="grid-3" id="statsSemana"></div>
+
+    <h3 style="font-size:16px;margin:16px 0 8px">Mensuales</h3>
+    <div class="grid-3" id="statsMes"></div>
+
+    <hr style="margin:18px 0;border:none;border-top:1px solid var(--border)"/>
+
+    <h2>Generar MEMO (Quincenal)</h2>
+
+    <details open>
+      <summary>Encabezado del MEMO (editable)</summary>
+      <div class="row two" style="margin-top:10px">
+        <div>
+          <label>Nombre de la escuela (línea 1)</label>
+          <input id="memoEscuelaNombre" value="ESCUELA SECUNDARIA No. 56 MIXTA" />
+        </div>
+        <div>
+          <label>Nombre del plantel (línea 2)</label>
+          <input id="memoPlantelNombre" value="JUANA DE ASBAJE" />
+        </div>
+      </div>
+      <div class="row two">
+        <div>
+          <label>CCT</label>
+          <input id="memoCCT" value="14EES0135G" />
+        </div>
+        <div></div>
+      </div>
+
+      <!-- ✅ NUEVO: Línea inferior separada en 3 campos -->
+      <div class="row three">
+        <div>
+          <label>Domicilio</label>
+          <input id="memoDomicilio" value="GENERAL ARTEAGA #326" />
+        </div>
+        <div>
+          <label>Teléfono</label>
+          <input id="memoTelefono" value="3336143726" />
+        </div>
+        <div>
+          <label>Ciclo escolar</label>
+          <input id="memoCiclo" value="C.E. 2024-2025" />
+        </div>
+      </div>
+
+      <div class="footer-note">✅ Esto se guarda automáticamente (no lo vuelves a escribir).</div>
+    </details>
+
+    <div class="row three" style="margin-top:12px">
+      <div>
+        <label>Personal</label>
+        <select id="memoPersonal"></select>
+      </div>
+      <div>
+        <label>Mes</label>
+        <input type="month" id="memoMes" />
+      </div>
+      <div>
+        <label>Quincena</label>
+        <select id="memoQuincena">
+          <option value="Q1">Q1 (01–15)</option>
+          <option value="Q2">Q2 (16–30/31)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row three">
+      <div>
+        <label>Fecha de emisión</label>
+        <input type="date" id="memoFecha" />
+      </div>
+      <div>
+        <label>Ciudad, Estado</label>
+        <input id="memoLugar" value="Guadalajara, Jalisco" />
+      </div>
+      <div>
+        <label>Director(a)</label>
+        <input id="memoDirector" value="DR. MANUEL MACIEL SALDIERNA" />
+      </div>
+    </div>
+
+    <div class="row three">
+      <div>
+        <label>Cargo Director(a)</label>
+        <input id="memoDirectorCargo" value="DIRECTOR SEC. 56 MIXTA" />
+      </div>
+      <div>
+        <label class="flex" style="gap:10px;margin-top:22px">
+          <span class="chip">
+            <input type="checkbox" id="memoDoble" checked />
+            <span>Memo doble (acuse)</span>
+          </span>
+        </label>
+      </div>
+      <div class="footer-note" style="margin-top:26px">2 copias en una hoja.</div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn" type="button" id="btnPreviewMemo">Previsualizar / Imprimir</button>
+      <button class="btn secondary" type="button" id="btnDescargarMemo">Descargar como HTML</button>
+    </div>
+
+    <p class="footer-note">El memo solo incluye: <b>Faltas</b> y <b>Retardos</b>. Incapacidad/Omisión/Licencia Económica NO aparecen.</p>
+  </section>
+
+</div>
+
+<script>
+  const ES_MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const ES_MESES_CAP=ES_MESES.map(m=>m.charAt(0).toUpperCase()+m.slice(1));
+  const pad=n=>String(n).padStart(2,'0');
+  const hoyISO=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+  const parseISO=s=>{const [y,m,dd]=s.split('-').map(Number);return new Date(y,m-1,dd)};
+  const ymKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+  const weekOfYear=(date)=>{const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));const dayNum=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-dayNum);const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));const weekNo=Math.ceil((((d-yearStart)/86400000)+1)/7);return `${d.getUTCFullYear()}-W${pad(weekNo)}`};
+  const safeUpper=s=>String(s||'').trim().toUpperCase();
+  const escCSV = (v)=> `"${String(v??'').replaceAll('"','""')}"`;
+
+  const LS_KEY='incidencias.v9';
+  const LOGO_KEY='logo.base64';
+
+  // ✅ settings (encabezado y datos memo)
+  const SETTINGS_KEY='incidencias.memoSettings.v2'; // ⬅️ subí versión porque cambió estructura
+
+  const state=JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+  if(!state.personal){
+    state.personal=[{id: crypto.randomUUID(), nombre:'HURTADO VALENCIA LIZBETH CAROLINA', funcion:'Docente'}];
+  }
+  if(!state.items) state.items=[];
+  function save(){localStorage.setItem(LS_KEY,JSON.stringify(state));}
+
+  function loadSettings(){
+    try{
+      return JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
+    }catch(e){
+      return {};
+    }
+  }
+  function saveSettings(obj){
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(obj));
+  }
+
+  // ===== DOM =====
+  const personalSel=document.querySelector('#personalSel');
+  const personalHint=document.querySelector('#personalHint');
+  const horasSel=document.querySelector('#horas');
+  const horasHint=document.querySelector('#horasHint');
+  const tipoSel=document.querySelector('#tipo');
+
+  const filtroPersonal=document.querySelector('#filtroPersonal');
+  const filtroMes=document.querySelector('#filtroMes');
+  const tablaBody=document.querySelector('#tablaBody');
+
+  const resPersonal=document.querySelector('#resPersonal');
+  const statsSemana=document.querySelector('#statsSemana');
+  const statsMes=document.querySelector('#statsMes');
+
+  const memoPersonal=document.querySelector('#memoPersonal');
+
+  // Encabezado editable
+  const memoEscuelaNombre=document.querySelector('#memoEscuelaNombre');
+  const memoPlantelNombre=document.querySelector('#memoPlantelNombre');
+  const memoCCT=document.querySelector('#memoCCT');
+
+  // ✅ NUEVO: 3 campos separados
+  const memoDomicilio=document.querySelector('#memoDomicilio');
+  const memoTelefono=document.querySelector('#memoTelefono');
+  const memoCiclo=document.querySelector('#memoCiclo');
+
+  // Otros campos memo que también guardamos
+  const memoQuincena=document.querySelector('#memoQuincena');
+  const memoLugar=document.querySelector('#memoLugar');
+  const memoDirector=document.querySelector('#memoDirector');
+  const memoDirectorCargo=document.querySelector('#memoDirectorCargo');
+  const memoDoble=document.querySelector('#memoDoble');
+
+  // Logo
+  const logoInput=document.querySelector('#logoInput');
+  const logoPreview=document.querySelector('#logoPreview');
+  const logoEmpty=document.querySelector('#logoEmpty');
+  const logoUploader=document.querySelector('#logoUploader');
+  const btnCambiarLogo=document.querySelector('#btnCambiarLogo');
+
+  function refreshLogoUI(){
+    const b64=localStorage.getItem(LOGO_KEY);
+    if(b64){
+      logoPreview.src=b64;
+      logoPreview.style.display='block';
+      logoEmpty.style.display='none';
+      logoUploader.style.display='none';
+      btnCambiarLogo.style.display='inline-flex';
+    }else{
+      logoPreview.src='';
+      logoPreview.style.display='none';
+      logoEmpty.style.display='block';
+      logoUploader.style.display='block';
+      btnCambiarLogo.style.display='none';
+    }
+  }
+
+  logoInput.addEventListener('change',(e)=>{
+    const file=e.target.files?.[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      localStorage.setItem(LOGO_KEY, reader.result);
+      refreshLogoUI();
+      alert('✅ Logo guardado. Ya aparecerá en los MEMOS.');
+      logoInput.value='';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  btnCambiarLogo.addEventListener('click', ()=>{
+    logoUploader.style.display='block';
+    btnCambiarLogo.style.display='none';
+  });
+
+  document.querySelector('#btnBorrarLogo').addEventListener('click',()=>{
+    if(!confirm('¿Borrar el logo guardado?')) return;
+    localStorage.removeItem(LOGO_KEY);
+    refreshLogoUI();
+  });
+
+  // ===== Guardado automático de encabezado y memo =====
+  function applySettingsToUI(s){
+    if(s.memoEscuelaNombre) memoEscuelaNombre.value = s.memoEscuelaNombre;
+    if(s.memoPlantelNombre) memoPlantelNombre.value = s.memoPlantelNombre;
+    if(s.memoCCT) memoCCT.value = s.memoCCT;
+
+    // ✅ nuevos
+    if(s.memoDomicilio) memoDomicilio.value = s.memoDomicilio;
+    if(s.memoTelefono) memoTelefono.value = s.memoTelefono;
+    if(s.memoCiclo) memoCiclo.value = s.memoCiclo;
+
+    if(s.memoLugar) memoLugar.value = s.memoLugar;
+    if(s.memoDirector) memoDirector.value = s.memoDirector;
+    if(s.memoDirectorCargo) memoDirectorCargo.value = s.memoDirectorCargo;
+
+    if(s.memoQuincena) memoQuincena.value = s.memoQuincena;
+    if(typeof s.memoDoble === 'boolean') memoDoble.checked = s.memoDoble;
+
+    // Compatibilidad: si antes existía memoLineaInferior, intenta repartirlo (opcional)
+    if(!s.memoDomicilio && !s.memoTelefono && !s.memoCiclo && s.memoLineaInferior){
+      const txt = String(s.memoLineaInferior);
+      // muy simple: lo dejamos en domicilio para que no se pierda
+      memoDomicilio.value = txt;
+    }
+  }
+
+  function captureSettingsFromUI(){
+    return {
+      memoEscuelaNombre: memoEscuelaNombre.value,
+      memoPlantelNombre: memoPlantelNombre.value,
+      memoCCT: memoCCT.value,
+
+      // ✅ nuevos
+      memoDomicilio: memoDomicilio.value,
+      memoTelefono: memoTelefono.value,
+      memoCiclo: memoCiclo.value,
+
+      memoLugar: memoLugar.value,
+      memoDirector: memoDirector.value,
+      memoDirectorCargo: memoDirectorCargo.value,
+      memoQuincena: memoQuincena.value,
+      memoDoble: memoDoble.checked
+    };
+  }
+
+  function wireSettingsAutosave(){
+    const fields = [
+      memoEscuelaNombre, memoPlantelNombre, memoCCT,
+      memoDomicilio, memoTelefono, memoCiclo,
+      memoLugar, memoDirector, memoDirectorCargo, memoQuincena, memoDoble
+    ];
+    const handler = ()=> saveSettings(captureSettingsFromUI());
+    fields.forEach(el=>{
+      el.addEventListener('input', handler);
+      el.addEventListener('change', handler);
+    });
+  }
+
+  // ===== Selects personal =====
+  function fillPersonalSelects(){
+    const sorted=state.personal.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    function fill(sel, arr, {placeholder}={}){
+      const prev=sel.value;
+      sel.innerHTML='';
+      if(placeholder){
+        const o=document.createElement('option');
+        o.value=''; o.textContent=placeholder;
+        sel.appendChild(o);
+      }
+      arr.forEach(p=>{
+        const o=document.createElement('option');
+        o.value=p.id;
+        o.textContent=`${p.nombre} — ${p.funcion}`;
+        sel.appendChild(o);
+      });
+      if(prev && Array.from(sel.options).some(o=>o.value===prev)) sel.value=prev;
+      else if(!placeholder && arr[0]) sel.value=arr[0].id;
+    }
+    fill(personalSel, sorted, {});
+    fill(memoPersonal, sorted, {});
+    fill(resPersonal, sorted, {});
+    fill(filtroPersonal, sorted, {placeholder:'Todo el personal'});
+    updatePersonalHint();
+    autoSugerirJornada();
+  }
+
+  function updatePersonalHint(){
+    const p=state.personal.find(x=>x.id===personalSel.value);
+    personalHint.textContent = p ? `Función: ${p.funcion}` : '';
+  }
+
+  function isDocenteSeleccionado(){
+    const p=state.personal.find(x=>x.id===personalSel.value);
+    return (p?.funcion || '').toLowerCase() === 'docente';
+  }
+
+  function autoSugerirJornada(){
+    const tipo = tipoSel.value;
+    const docente = isDocenteSeleccionado();
+    if(!docente && (tipo==='Incapacidad' || tipo==='Licencia Económica')){
+      horasSel.value = 'JORNADA';
+      horasHint.textContent = 'Sugerencia: para esta función se usa JORNADA.';
+    } else {
+      horasHint.textContent = docente ? 'Docente: puedes capturar horas.' : 'Si aplica jornada, usa “JORNADA”.';
+    }
+  }
+
+  function fillMesFiltro(){
+    const set=new Set(state.items.map(i=>ymKey(parseISO(i.fecha))));
+    const arr=Array.from(set).sort().reverse();
+    filtroMes.innerHTML='';
+    const opt0=document.createElement('option');
+    opt0.value=''; opt0.textContent='Todos los meses';
+    filtroMes.appendChild(opt0);
+    arr.forEach(k=>{
+      const [y,m]=k.split('-');
+      const o=document.createElement('option');
+      o.value=k;
+      o.textContent=`${ES_MESES[Number(m)-1]} ${y}`;
+      filtroMes.appendChild(o);
+    });
+  }
+
+  function renderTabla(){
+    const fp=filtroPersonal.value;
+    const fm=filtroMes.value;
+    tablaBody.innerHTML='';
+    state.items.slice()
+      .sort((a,b)=>a.fecha<b.fecha?1:-1)
+      .filter(it=>!fp || it.personalId===fp)
+      .filter(it=>!fm || ymKey(parseISO(it.fecha))===fm)
+      .forEach(it=>{
+        const d=parseISO(it.fecha);
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td>${it.nombre}</td>
+          <td>${it.funcion}</td>
+          <td class="mono">${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}</td>
+          <td class="mono">${weekOfYear(d)}</td>
+          <td><span class="pill inc-${it.tipo.replace(' ','\\ ')}">${it.tipo}</span></td>
+          <td class="mono">${it.horas==='JORNADA' ? 'JORNADA' : it.horas}</td>
+          <td>${it.nota||''}</td>
+          <td><button class="btn danger" data-del="${it.id}">Eliminar</button></td>
+        `;
+        tablaBody.appendChild(tr);
+      });
+  }
+
+  function valParaResumen(item){
+    if(item.horas==='JORNADA') return 1;
+    const n=Number(item.horas||0);
+    return isFinite(n) ? n : 0;
+  }
+
+  function renderResumen(){
+    const pid=resPersonal.value || state.personal[0]?.id;
+    const items=state.items.filter(i=>i.personalId===pid);
+
+    const porSemana=new Map();
+    items.forEach(i=>{
+      const wk=weekOfYear(parseISO(i.fecha));
+      porSemana.set(wk, (porSemana.get(wk)||0) + valParaResumen(i));
+    });
+
+    statsSemana.innerHTML='';
+    if(porSemana.size===0){
+      statsSemana.innerHTML='<div class="stat muted center">Sin registros por semana.</div>';
+    } else {
+      Array.from(porSemana.entries()).sort((a,b)=>a[0]<b[0]?1:-1).forEach(([wk,val])=>{
+        const div=document.createElement('div');
+        div.className='stat';
+        div.innerHTML=`<div class="muted">Semana</div><b class="mono">${wk}</b><div class="muted">Total: ${Number(val).toFixed(1).replace('.0','')}</div>`;
+        statsSemana.appendChild(div);
+      });
+    }
+
+    const porMes=new Map();
+    items.forEach(i=>{
+      const k=ymKey(parseISO(i.fecha));
+      porMes.set(k, (porMes.get(k)||0) + valParaResumen(i));
+    });
+
+    statsMes.innerHTML='';
+    if(porMes.size===0){
+      statsMes.innerHTML='<div class="stat muted center">Sin registros por mes.</div>';
+    } else {
+      Array.from(porMes.entries()).sort((a,b)=>a[0]<b[0]?1:-1).forEach(([k,val])=>{
+        const [y,m]=k.split('-');
+        const div=document.createElement('div');
+        div.className='stat';
+        div.innerHTML=`<div class="muted">Mes</div><b>${ES_MESES[Number(m)-1]} ${y}</b><div class="muted">Total: ${Number(val).toFixed(1).replace('.0','')}</div>`;
+        statsMes.appendChild(div);
+      });
+    }
+  }
+
+  function renderListaPersonal(){
+    const box=document.querySelector('#listaPersonal');
+    const q=(document.querySelector('#buscarPersonal').value||'').trim().toLowerCase();
+    const list=state.personal.filter(p=>!q || p.nombre.toLowerCase().includes(q)).slice().sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    if(list.length===0){
+      box.innerHTML=`<div class="muted center">${q?'Sin coincidencias.':'No hay personal.'}</div>`;
+      return;
+    }
+    box.innerHTML=list.map(p=>`
+      <div class="flex" style="justify-content:space-between;border-bottom:1px solid #e5e7eb;padding:8px 2px">
+        <div>
+          <div style="font-weight:900">${p.nombre}</div>
+          <div class="muted" style="font-size:12px">${p.funcion}</div>
+        </div>
+        <button class="btn danger" style="padding:4px 8px" data-del-personal="${p.id}">Eliminar</button>
+      </div>
+    `).join('') + `<div class="footer-note" style="padding:6px 2px">Mostrando ${list.length} de ${state.personal.length}</div>`;
+  }
+
+  function downloadFile(filename, content, mime){
+    const blob=new Blob([content],{type:mime || 'text/plain;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  function exportCSV(){
+    const headers=["Nombre","Función","Fecha","Semana","Tipo","Horas/Jornada","Nota"];
+    const rows = state.items.slice().sort((a,b)=>a.fecha<b.fecha? -1 : 1).map(it=>{
+      const d=parseISO(it.fecha);
+      return [
+        it.nombre,
+        it.funcion,
+        `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`,
+        weekOfYear(d),
+        it.tipo,
+        it.horas==='JORNADA' ? 'JORNADA' : it.horas,
+        it.nota||''
+      ].map(escCSV).join(',');
+    });
+    const csv = headers.map(escCSV).join(',') + "\n" + rows.join("\n");
+    downloadFile(`incidencias_${hoyISO()}.csv`, csv, 'text/csv;charset=utf-8');
+  }
+
+  function buildMemoHTML({personalId,mes,quincena,lugar,fechaEmision,director,directorCargo,doble}){
+    const p=state.personal.find(x=>x.id===personalId);
+    if(!p) throw new Error('No se encontró la persona del memo.');
+
+    const logoB64 = localStorage.getItem(LOGO_KEY) || '';
+    if(!logoB64){
+      throw new Error('No has cargado el LOGO. Sube el logo y vuelve a intentar.');
+    }
+
+    const escuela = safeUpper(memoEscuelaNombre.value || 'ESCUELA');
+    const plantel = safeUpper(memoPlantelNombre.value || '');
+    const cct = safeUpper(memoCCT.value || 'CCT');
+
+    // ✅ Construye la “línea inferior” desde 3 campos (separados por •)
+    const domicilio = (memoDomicilio.value || '').trim();
+    const telRaw = (memoTelefono.value || '').trim();
+    const ciclo = (memoCiclo.value || '').trim();
+    const telTxt = telRaw ? `TEL.: ${telRaw}` : '';
+    const lineaInf = [domicilio, telTxt, ciclo].filter(Boolean).join(' • ');
+
+    const [y,m]=mes.split('-').map(Number);
+    const lastDay=new Date(y,m,0).getDate();
+    const desde=new Date(y,m-1, quincena==='Q1' ? 1 : 16);
+    const hasta=new Date(y,m-1, quincena==='Q1' ? 15 : lastDay);
+
+    const incidencias=state.items
+      .filter(i=>i.personalId===personalId)
+      .filter(i=>{
+        const d=parseISO(i.fecha);
+        return d>=desde && d<=hasta;
+      })
+      .filter(i=> i.tipo==='Falta' || i.tipo==='Retardo')
+      .sort((a,b)=>a.fecha<b.fecha?-1:1);
+
+    const fe=parseISO(fechaEmision);
+    const fechaStr=`${(lugar||'')}${lugar?', ':''}${pad(fe.getDate())} de ${ES_MESES_CAP[fe.getMonth()]} de ${fe.getFullYear()}`;
+
+    const monthName=ES_MESES[m-1].toUpperCase();
+    const qtxt=quincena==='Q1' ? 'del 01 al 15' : `del 16 al ${pad(hasta.getDate())}`;
+
+    const filas = (incidencias.length===0)
+      ? `<tr><td colspan="2" style="text-align:center">Sin Faltas o Retardos registradas para la quincena seleccionada.</td></tr>`
+      : incidencias.map(i=>{
+          const d=parseISO(i.fecha);
+          const horasDisplay = (i.horas==='JORNADA') ? 'JORNADA' : String(i.horas).padStart(2,'0');
+          const tipoAbreviado = i.tipo.charAt(0);
+          return `<tr>
+            <td style="text-align:center" class="mono">DÍA ${pad(d.getDate())}</td>
+            <td style="text-align:center">${horasDisplay} ${tipoAbreviado}</td>
+          </tr>`;
+        }).join('');
+
+    const fullMemo = `
+      <div class="memo">
+        <div class="header">
+          <img class="logo" src="${logoB64}" alt="Logo escuela" />
+          <div class="title">${escuela}</div>
+          ${plantel ? `<div class="title">“${plantel}”</div>` : ``}
+          <div class="sub">CCT ${cct}</div>
+          <div class="sub">${safeUpper(lineaInf)}</div>
+        </div>
+
+        <div class="right mono">${fechaStr}</div>
+
+        <div class="block">
+          <div><b>C. ${p.nombre}</b></div>
+          <div><b>P R E S E N T E.-</b></div>
+        </div>
+
+        <div class="block smalltext">
+          Por medio de este conducto le solicito de la manera más atenta pase usted a dirección para presentar el justificante de las inasistencias señaladas en el siguiente cuadro, mismas que corresponden a la quincena ${qtxt} del mes de ${monthName} del año ${y}. (Plazo no mayor a 72 hrs.)
+        </div>
+
+        <table class="tabla">
+          <thead>
+            <tr><th style="width:35%">FECHA</th><th style="width:65%">TIPO DE INCIDENCIA</th></tr>
+          </thead>
+          <tbody>${filas}</tbody>
+        </table>
+
+        <div class="center block"><b>A T E N T A M E N T E</b></div>
+
+        <div class="firma">
+          <div class="line"></div>
+          <div class="dir">${safeUpper(director||'DIRECTOR(A)')}</div>
+          <div class="sub">${safeUpper(directorCargo||'DIRECTOR(A)')}</div>
+        </div>
+      </div>
+    `;
+
+    const acuseCompacto = `
+      <div class="memo memo-compact">
+        <div class="header">
+          <img class="logo" src="${logoB64}" alt="Logo escuela" />
+          <div class="title">${escuela}</div>
+          ${plantel ? `<div class="sub">“${plantel}”</div>` : ``}
+          <div class="sub">CCT ${cct}</div>
+        </div>
+
+        <div class="right mono">${fechaStr}</div>
+
+        <div class="block">
+          <div><b>ACUSE / RECIBÍ</b></div>
+          <div class="smalltext">He recibido el MEMO de faltas y retardos correspondiente a la quincena ${qtxt} del mes de ${monthName} del año ${y}.</div>
+        </div>
+
+        <div class="block">
+          <div><b>C. ${p.nombre}</b></div>
+        </div>
+
+        <table class="tabla">
+          <thead>
+            <tr><th style="width:35%">FECHA</th><th style="width:65%">TIPO</th></tr>
+          </thead>
+          <tbody>${filas}</tbody>
+        </table>
+
+        <div class="acuse">
+          <div class="smalltext">Nombre y firma de recibido:</div>
+          <div class="line2"></div>
+          <div class="smalltext muted">Fecha: ____ / ____ / ______</div>
+        </div>
+      </div>
+    `;
+
+    const body = doble
+      ? `${fullMemo}<div class="memo-divider"></div>${acuseCompacto}`
+      : `${fullMemo}`;
+
+    return `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MEMO</title>
+<style>
+  @page{size:letter;margin:1.6cm}
+  body{font-family:Georgia,"Times New Roman",serif;color:#111827}
+  .memo{break-inside:avoid}
+  .header{text-align:center;font-weight:700;text-transform:uppercase;line-height:1.15}
+  .logo{max-height:70px;display:block;margin:0 auto 6px auto}
+  .title{font-size:14px}
+  .sub{font-size:11px;font-weight:400}
+  .right{text-align:right;margin-top:8px;font-size:12px}
+  .block{margin-top:10px;font-size:12px}
+  .smalltext{font-size:11px}
+  .tabla{width:60%;border-collapse:collapse;margin:8px auto;table-layout:fixed}
+  th,td{border:1px solid #111827;padding:5px 6px;font-size:12px}
+  th{background:#f3f4f6}
+  .center{text-align:center}
+  .firma{margin-top:18px;text-align:center}
+  .line{border-top:1px solid #111827;width:70%;margin:0 auto 6px auto}
+  .dir{font-weight:700;font-size:12px}
+  .mono{font-variant-numeric:tabular-nums;font-family:Consolas,Monaco,monospace}
+  .memo-divider{border-top:2px dashed #111827;margin:12px 0}
+  .acuse{margin-top:10px;font-size:12px}
+  .line2{border-top:1px solid #111827;margin-top:14px}
+  .muted{color:#6b7280}
+  .memo-compact .tabla{margin-top:6px}
+</style>
+</head>
+<body>
+${body}
+</body>
+</html>`;
+  }
+
+  function openMemoWindow(html){
+    const w=window.open('about:blank','_blank');
+    if(!w || w.closed || typeof w.closed==='undefined'){
+      alert('Tu navegador bloqueó la ventana. Usa “Descargar como HTML”.');
+      return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    setTimeout(()=>{try{w.focus();w.print();}catch(e){}},350);
+  }
+
+  // ===== Eventos UI =====
+  document.querySelector('#btnNueva').addEventListener('click', ()=>{
+    document.querySelector('#formIncidencia').reset();
+    document.querySelector('#fecha').value=hoyISO();
+    updatePersonalHint();
+    autoSugerirJornada();
+  });
+
+  personalSel.addEventListener('change', ()=>{
+    updatePersonalHint();
+    autoSugerirJornada();
+  });
+  tipoSel.addEventListener('change', autoSugerirJornada);
+
+  document.querySelector('#btnToggleAlta').addEventListener('click', ()=>{
+    const box=document.querySelector('#altaBox');
+    box.style.display = (box.style.display==='none' || !box.style.display) ? 'block' : 'none';
+  });
+  document.querySelector('#btnCancelarAlta').addEventListener('click', ()=>{
+    document.querySelector('#altaBox').style.display='none';
+  });
+
+  document.querySelector('#btnAddPersonal').addEventListener('click', ()=>{
+    const nombre=safeUpper(document.querySelector('#nuevoNombre').value);
+    const funcion=document.querySelector('#nuevaFuncion').value;
+    if(!nombre) return alert('Escribe el nombre.');
+    if(state.personal.some(p=>p.nombre===nombre)) return alert('Ya existe en la plantilla.');
+    state.personal.push({id:crypto.randomUUID(), nombre, funcion});
+    save();
+    document.querySelector('#nuevoNombre').value='';
+    document.querySelector('#altaBox').style.display='none';
+    fillPersonalSelects();
+    renderListaPersonal();
+  });
+
+  document.querySelector('#formIncidencia').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const p=state.personal.find(x=>x.id===personalSel.value);
+    if(!p) return alert('Selecciona personal.');
+    const item={
+      id: crypto.randomUUID(),
+      personalId: p.id,
+      nombre: p.nombre,
+      funcion: p.funcion,
+      fecha: document.querySelector('#fecha').value,
+      tipo: tipoSel.value,
+      horas: horasSel.value,
+      nota: (document.querySelector('#nota').value||'').trim()
+    };
+    if(!item.fecha) return alert('Selecciona fecha.');
+    state.items.push(item);
+    save();
+    fillMesFiltro();
+    renderTabla();
+    renderResumen();
+    document.querySelector('#formIncidencia').reset();
+    document.querySelector('#fecha').value=hoyISO();
+    updatePersonalHint();
+    autoSugerirJornada();
+  });
+
+  tablaBody.addEventListener('click', (e)=>{
+    const id=e.target.getAttribute('data-del');
+    if(!id) return;
+    if(confirm('¿Eliminar incidencia?')){
+      state.items=state.items.filter(x=>x.id!==id);
+      save();
+      fillMesFiltro();
+      renderTabla();
+      renderResumen();
+    }
+  });
+
+  document.querySelector('#btnLimpiarFiltros').addEventListener('click', ()=>{
+    filtroPersonal.value='';
+    filtroMes.value='';
+    renderTabla();
+  });
+  filtroPersonal.addEventListener('change', renderTabla);
+  filtroMes.addEventListener('change', renderTabla);
+
+  document.querySelector('#btnRefrescarRes').addEventListener('click', renderResumen);
+  resPersonal.addEventListener('change', renderResumen);
+
+  document.querySelector('#buscarPersonal').addEventListener('input', renderListaPersonal);
+  document.querySelector('#btnLimpiarBusqueda').addEventListener('click', ()=>{
+    document.querySelector('#buscarPersonal').value='';
+    renderListaPersonal();
+  });
+
+  document.addEventListener('click', (e)=>{
+    const btn=e.target.closest('[data-del-personal]');
+    if(!btn) return;
+    const pid=btn.getAttribute('data-del-personal');
+    const p=state.personal.find(x=>x.id===pid);
+    if(!p) return;
+    if(!confirm(`¿Eliminar a "${p.nombre}" de la plantilla?`)) return;
+    const delInc=confirm('¿También eliminar TODAS sus incidencias?\nAceptar = Sí\nCancelar = No');
+    state.personal=state.personal.filter(x=>x.id!==pid);
+    if(delInc) state.items=state.items.filter(i=>i.personalId!==pid);
+    save();
+    fillPersonalSelects();
+    fillMesFiltro();
+    renderTabla();
+    renderResumen();
+    renderListaPersonal();
+  });
+
+  document.querySelector('#btnExportJSON').addEventListener('click', ()=>{
+    downloadFile('incidencias_respaldo.json', JSON.stringify(state,null,2), 'application/json;charset=utf-8');
+  });
+
+  document.querySelector('#fileImport').addEventListener('change', (e)=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        if(!data.personal || !data.items) throw new Error('Estructura inválida');
+        localStorage.setItem(LS_KEY, JSON.stringify(data));
+        location.reload();
+      }catch(err){
+        alert('No se pudo importar: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  document.querySelector('#btnExportCSV').addEventListener('click', exportCSV);
+
+  document.querySelector('#btnPreviewMemo').addEventListener('click', ()=>{
+    try{
+      const pid=memoPersonal.value;
+      const mes=document.querySelector('#memoMes').value;
+      const quincena=memoQuincena.value;
+      const fechaEmision=document.querySelector('#memoFecha').value || hoyISO();
+      const lugar=memoLugar.value || '';
+      const director=memoDirector.value || '';
+      const directorCargo=memoDirectorCargo.value || '';
+      const doble=memoDoble.checked;
+
+      if(!pid) return alert('Elige personal.');
+      if(!mes) return alert('Elige mes.');
+
+      saveSettings(captureSettingsFromUI());
+
+      const html=buildMemoHTML({personalId:pid,mes,quincena,lugar,fechaEmision,director,directorCargo,doble});
+      openMemoWindow(html);
+    }catch(err){
+      console.error(err);
+      alert('Error al generar memo: '+err.message);
+    }
+  });
+
+  document.querySelector('#btnDescargarMemo').addEventListener('click', ()=>{
+    try{
+      const pid=memoPersonal.value;
+      const p=state.personal.find(x=>x.id===pid);
+      const mes=document.querySelector('#memoMes').value;
+      const quincena=memoQuincena.value;
+      const fechaEmision=document.querySelector('#memoFecha').value || hoyISO();
+      const lugar=memoLugar.value || '';
+      const director=memoDirector.value || '';
+      const directorCargo=memoDirectorCargo.value || '';
+      const doble=memoDoble.checked;
+
+      if(!pid) return alert('Elige personal.');
+      if(!mes) return alert('Elige mes.');
+
+      saveSettings(captureSettingsFromUI());
+
+      const html=buildMemoHTML({personalId:pid,mes,quincena,lugar,fechaEmision,director,directorCargo,doble});
+      const nombre=(p?.nombre||'PERSONAL').replace(/\s+/g,'_');
+      downloadFile(`MEMO_${nombre}_${mes}_${quincena}${doble?'_DOBLE':''}.html`, html, 'text/html;charset=utf-8');
+    }catch(err){
+      console.error(err);
+      alert('Error al descargar memo: '+err.message);
+    }
+  });
+
+  // Init
+  function init(){
+    document.querySelector('#fecha').value=hoyISO();
+    document.querySelector('#memoFecha').value=hoyISO();
+
+    const d=new Date();
+    document.querySelector('#memoMes').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+
+    const s = loadSettings();
+    applySettingsToUI(s);
+    wireSettingsAutosave();
+
+    refreshLogoUI();
+    fillPersonalSelects();
+    fillMesFiltro();
+    renderTabla();
+    renderResumen();
+    renderListaPersonal();
+    autoSugerirJornada();
+  }
+  init();
+</script>
+</body>
+</html>
 
